@@ -1,45 +1,68 @@
-import React, {useState} from "react";
+import React, { useState, useEffect } from "react";
 import SearchBar from "./SearchBar";
 import RecipeList from "./recipeList";
+import RecipeInfo from "./RecipeInfo";
 
-const API_key = "8c352681fd0d40c9a98e7eebb34bdd47";
+const API_key = "8ba056b46d614e8196c5b6c4485c2d79";
 
-function App(){
+function App() {
+  const [recipeInfo, setRecipeInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [recipeDetails, setRecipeDetails] = useState(null);
+  const [selectedRecipeId, setSelectedRecipeId] = useState(null);
 
-  const [recipeInfo, setRecipeInfo] =useState(null);
-  const[loading, setLoading] =useState(true);
-  const[error, setError] =useState(null);
-
-  const fetchRecipeData= async(recipe)=>{
+  const fetchRecipeData = async (recipe) => {
+    setLoading(true);
+    setError(null);
 
     try {
-      const response = fetch (`https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_key}&query=${recipe}`)
-      if(!response.ok){
-        throw Error("There is an error.")
+      const response = await fetch(`https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_key}&query=${recipe}`);
+      if (!response.ok) {
+        throw new Error("There is an error.");
       }
-        const data = (await response).json();
-        setRecipeInfo(data);
-        setLoading(false);
-        setError(false);
+      const data = await response.json();
+      setRecipeInfo(data.results);
+      setLoading(false);
+    } catch (error) {
+      setError(error.message);
+      setLoading(false);
     }
+  };
 
-    catch(error){
-      setError(true)
-      setLoading(true)
-    }
+  const fetchRecipeInfo = async (id) => {
+    setLoading(true);
+    setError(null);
 
-    if(loading){
-      <p>Loading...</p>
+    try {
+      const response = await fetch(`https://api.spoonacular.com/recipes/${id}/information?apiKey=${API_key}`);
+      if (!response.ok) {
+        throw new Error("There is an error.");
+      }
+      const data = await response.json();
+      setRecipeDetails(data);
+      setLoading(false);
+    } catch (error) {
+      setError(error.message);
+      setLoading(false);
     }
-    if(error){
-     <p>Error: {error.message}</p>
+  };
+
+  useEffect(() => {
+    if (selectedRecipeId) {
+      fetchRecipeInfo(selectedRecipeId);
     }
-  }
-    return (
-      <div>
-        <SearchBar fetchRecipe ={fetchRecipeData}></SearchBar>
-        <RecipeList data = {recipeInfo}></RecipeList>
-      </div>
-    )
-    }
+  }, [selectedRecipeId]);
+
+  return (
+    <div>
+      <SearchBar fetchRecipe={fetchRecipeData} />
+      {loading && <p>Loading...</p>}
+      {error && <p>Error: {error}</p>}
+      {!selectedRecipeId && recipeInfo && <RecipeList data={recipeInfo} onViewRecipe={setSelectedRecipeId} />}
+      {selectedRecipeId && recipeDetails && <RecipeInfo data={recipeDetails} />}
+    </div>
+  );
+}
+
 export default App;
