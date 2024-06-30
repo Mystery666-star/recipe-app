@@ -3,7 +3,7 @@ import SearchBar from "./SearchBar";
 import RecipeList from "./recipeList";
 import RecipeInfo from "./RecipeInfo";
 
-const API_key = "8ba056b46d614e8196c5b6c4485c2d79";
+const API_key = "b3304d9436e7432792c3c33f8a88a981";
 
 function App() {
   const [recipeInfo, setRecipeInfo] = useState(null);
